@@ -75,73 +75,62 @@ class DonationController extends Controller
      * Enregistrer un nouveau don
      */
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'donor_id' => 'required|exists:users,id',
-            'donation_date' => 'required|date|before_or_equal:today',
-            'donation_type' => 'required|string',
-            'quantity_ml' => 'required|numeric|min:200|max:500',
-            'bag_number' => 'required|string|unique:donations,bag_number',
-            'location' => 'required|string',
-            'weight' => 'required|numeric|min:50',
-            'blood_pressure' => 'required|string',
-            'hemoglobin_level' => 'required|numeric|min:12',
-            'temperature' => 'nullable|numeric|min:35|max:38',
-            'consent_given' => 'required|boolean',
-            'medical_check_passed' => 'required|boolean',
-            'eligibility_verified' => 'required|boolean',
-            'notes' => 'nullable|string',
-        ]);
+{
+    //1. Validation
+    $validated = $request->validate([
+        'donor_id'         => 'required|exists:users,id',
+        'donation_date'    => 'required|date|before_or_equal:today',
+        'donation_type'    => 'required|string',
+        'quantity_ml'      => 'required|numeric|min:200|max:500',
+        'bag_number'       => 'required|string|unique:donations,bag_number',
+        'weight'           => 'required|numeric|min:50',
+        'blood_pressure'   => 'required|string',
+        'hemoglobin_level' => 'required|numeric|min:12',
+        'notes'            => 'nullable|string',
+    ]);
 
-        DB::beginTransaction();
-        try {
-            $donor = User::findOrFail($request->donor_id);
+    // 2. Ajouter agent connecté
+    $validated['agent_id'] = auth()->id();
 
-            if (!$this->checkEligibility($donor)) {
-                return redirect()->back()
-                    ->with('error', 'Le donneur n\'est pas éligible pour un don actuellement.')
-                    ->withInput();
-            }
+    // 3. Récupérer le groupe sanguin du donneur automatiquement
+    $donor = User::findOrFail($validated['donor_id']);
+    $validated['blood_group'] = $donor->blood_group;
 
-            $donation = donations::create([
-                'donor_id' => $donor->id,
-                'agent_id' => Auth::id(),
-                'blood_group' => $donor->blood_group,
-                'donation_date' => $request->donation_date,
-                'donation_type' => $request->donation_type,
-                'quantity_ml' => $request->quantity_ml,
-                'bag_number' => $request->bag_number,
-                'location' => $request->location,
-                'weight' => $request->weight,
-                'blood_pressure' => $request->blood_pressure,
-                'hemoglobin_level' => $request->hemoglobin_level,
-                'temperature' => $request->temperature,
-                'consent_given' => $request->consent_given,
-                'medical_check_passed' => $request->medical_check_passed,
-                'eligibility_verified' => $request->eligibility_verified,
-                'notes' => $request->notes,
-                'status' => 'pending',
-            ]);
+    // 4. Champs optionnels ou automatiques
+    $validated['status'] = 'pending'; // ou 'completed'
+    $validated['consent_given'] = true;
+    $validated['medical_check_passed'] = true;
+    $validated['eligibility_verified'] = true;
 
-            // Mettre à jour le donneur
-            $donor->update([
-                'last_donation_date' => $request->donation_date,
-                'donation_count' => $donor->donation_count + 1,
-            ]);
+    // 5. Enregistrement du don
+    $donation = donations::create($validated);
 
-            DB::commit();
+    // 6. Mise à jour du stock
+    $stock = blood_stocks::firstOrCreate(
+        ['blood_group' => $validated['blood_group']],
+        [
+            'quantity_units' => 0,
+            'status' => 'ok',
+            'expiry_date' => now()->addDays(42),
+        ]
+    );
 
-            return redirect()->route('agent.donations.show', $donation->id)
-                ->with('success', 'Don enregistré avec succès ! Numéro : ' . $donation->bag_number);
+    $stock->quantity_units += $validated['quantity_ml'];
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Erreur lors de l\'enregistrement : ' . $e->getMessage())
-                ->withInput();
-        }
+    if ($stock->quantity_units <= 0) {
+        $stock->status = 'empty';
+    } elseif ($stock->quantity_units < 500) {
+        $stock->status = 'critical';
+    } else {
+        $stock->status = 'ok';
     }
 
+    $stock->save();
+
+    // 7. Réponse
+    return redirect()->route('agent.donations.index')
+        ->with('success', 'Don enregistré avec succès');
+    }
     /**
      * Afficher les détails d'un don
      */

@@ -83,9 +83,9 @@ Route::prefix('admin')->name('admin.')->middleware(['web', 'auth', 'role:admin']
     Route::post('stocks/bulk-update', [StockController::class, 'bulkUpdate'])->name('stocks.bulk-update');
 
     // Rapports et exports
-     //Route::get('reports/users', [AdminController::class, 'usersReport'])->name('reports.users');
-     //Route::get('reports/donations', [AdminController::class, 'donationsReport'])->name('reports.donations');
-     //Route::get('reports/stocks', [AdminController::class, 'stocksReport'])->name('reports.stocks');
+     Route::get('reports/users', [AdminController::class, 'usersReport'])->name('reports.users');
+     Route::get('reports/donations', [AdminController::class, 'donationsReport'])->name('reports.donations');
+     Route::get('reports/stocks', [AdminController::class, 'stocksReport'])->name('reports.stocks');
 });
 
 
@@ -97,18 +97,28 @@ Route::prefix('admin')->name('admin.')->middleware(['web', 'auth', 'role:admin']
 Route::prefix('agent')->name('agent.')->middleware(['auth', 'role:agent'])->group(function () {
         
      Route::get('/', [AgentController::class, 'dashboard'])->name('dashboard');
-     Route::post('/agent/donations', [AgentController::class, 'storeDonation'])->name('donations.store');
-     Route::get('/agent/stocks', [AgentController::class, 'stocks'])->name('stocks.index');
-     Route::get('/agent/donations/history', [AgentController::class, 'history'])->name('donations.history');
-     
+    
 
-     Route::get('/stock-data', [AgentController::class, 'getStockData'])->name('stock-data');
-     Route::get('/agent-stats', [AgentController::class, 'getAgentStats'])->name('agent-stats');
+    //STOCKS
+    Route::get('/agent/stocks', [AgentController::class, 'stocks'])->name('stocks.index');
+    Route::get('/stock-data', [AgentController::class, 'getStockData'])->name('stock-data');
+    Route::get('/agent-stats', [AgentController::class, 'getAgentStats'])->name('agent-stats');
 
-     Route::resource('donations', DonationController::class);
-     Route::get('donations/today', [DonationController::class, 'todayDonations'])->name('donations.today');
-     Route::get('donations/{donation}/receipt', [DonationController::class, 'receipt'])->name('donations.receipt');
-     Route::post('donations/{donation}/validate', [DonationController::class, 'validate'])->name('donations.validate');
+    //HISTORIQUE
+    Route::get('/agent/donations/history', [AgentController::class, 'history'])->name('donations.history');
+
+    //FORMULAIRE ENREGISTREMENT DON (PAGE)
+    Route::get('/donations/create', [AgentController::class, 'createDonation'])->name('donations.create');
+
+    //TRAITEMENT DU FORMULAIRE (IMPORTANT)
+     // Route::post('/donations', [AgentController::class, 'storeDonation'])->name('donations.store');
+
+    //AUTRES FONCTIONNALITÉS (Depuis DonationController)
+    Route::resource('donations', DonationController::class);
+    Route::get('donations/today', [DonationController::class, 'todayDonations'])->name('donations.today');
+    Route::get('donations/{donation}/receipt', [DonationController::class, 'receipt'])->name('donations.receipt');
+    Route::post('donations/{donation}/validate', [DonationController::class, 'validate'])->name('donations.validate');
+
      
 
      // Route::get('eligibility-check', [AgentController::class, 'eligibilityCheck'])->name('eligibility-check');
@@ -129,7 +139,8 @@ Route::prefix('donor')->name('donor.')->group(function () {
 
     
     // Historique des dons
-    Route::get('/donations', [DonorController::class, 'donations'])->name('donations');
+    Route::get('/donations', [DonorController::class, 'donations'])->name('donations.index');
+     //Route::get('/donations', [DonorController::class, 'donations'])->name('donations');
     Route::get('/donations/{donation}', [DonorController::class, 'showDonation'])
          ->name('donations.show');
     

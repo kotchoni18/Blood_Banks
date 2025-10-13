@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\donations;
 use App\Models\blood_stocks;
-// use App\Models\User;
+use App\Models\User;
 use App\Services\BloodStockService; use Illuminate\Http\Request;
 
 class AgentController extends Controller
@@ -250,5 +250,9 @@ class AgentController extends Controller
 
         return response()->json($donors);
     }
-
+    public function createDonation()
+    {
+        $donors = User::where('role', 'agent')->get();
+        return view('agent.donations.create', compact('donors'));
+    }
 }

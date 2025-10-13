@@ -125,7 +125,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('donor.donations') ? 'active' : '' }}" 
-                           href="{{ route('donor.donations') }}">
+                           href="{{ route('donor.donations.index') }}">
                             <i class="bi bi-droplet me-1"></i>Mes Dons
                         </a>
                     </li>
@@ -182,7 +182,7 @@
         @yield('content')
     </main>
 
-    <!-- Footer -->
+    <!-- Footer 
     <footer class="bg-dark text-light py-4 mt-5">
         <div class="container">
             <div class="row">
@@ -191,11 +191,11 @@
                     <p>Sauver des vies, un don à la fois.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p>&copy; 2024 Centre de Transfusion Sanguine</p>
+                    <p>&copy; 2025 Centre de Transfusion Sanguine</p>
                 </div>
             </div>
         </div>
-    </footer>
+    </footer>-->
 
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>

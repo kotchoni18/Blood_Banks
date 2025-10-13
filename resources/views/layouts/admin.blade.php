@@ -95,6 +95,35 @@
                             Stocks
                         </a>
                     </li>
+
+                    <li class="nav-item">
+    <a href="{{ route('admin.reports.users') }}" 
+       class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+        <i class="bi bi-bar-chart-line me-2"></i>
+        Rapports
+    </a>
+    <ul class="nav flex-column ms-3">
+        <li class="nav-item">
+            <a href="{{ route('admin.reports.users') }}" 
+               class="nav-link {{ request()->routeIs('admin.reports.users') ? 'active' : '' }}">
+                Utilisateurs
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('admin.reports.stocks') }}" 
+               class="nav-link {{ request()->routeIs('admin.reports.stocks') ? 'active' : '' }}">
+                Stocks
+            </a>
+        </li><li class="nav-item">
+            <a href="{{ route('admin.reports.donations') }}" 
+               class="nav-link {{ request()->routeIs('admin.reports.donations') ? 'active' : '' }}">
+                Dons
+            </a>
+        </li>
+        <!-- Ajouter d'autres rapports si besoin -->
+    </ul>
+</li>
+
                 </ul>
             </div>
         </nav>

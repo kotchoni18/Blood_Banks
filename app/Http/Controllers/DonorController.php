@@ -219,4 +219,21 @@ class DonorController extends Controller
 
         return view('donor.appointments', compact('upcomingAppointments', 'pastAppointments'));
     }
+
+    public function donations()
+    {
+        // Récupérer les dons du donneur connecté
+        $donations = donations::where('donor_id', auth()->id())->latest()->get();
+
+        // Retourner la vue
+        return view('donor.donations.index', compact('donations'));
+    }
+
+    public function campaigns()
+    {
+        // Exemple : récupérer les campagnes actives ou toutes
+        $campaigns = \App\Models\campaigns::latest()->paginate(10);
+
+        return view('donor.campaigns', compact('campaigns'));
+    }
 }

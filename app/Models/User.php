@@ -107,6 +107,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(donations::class, 'donor_id'); //  préciser aussi
     }
+    
+
+    public function agentDonations()
+    {
+        return $this->hasMany(donations::class, 'agent_id');
+    }
 
 
 }

@@ -180,8 +180,9 @@
                     <!-- Barre de progression -->
                     <div class="progress progress-custom mb-3">
                         @php
-                            $percentage = min(100, ($stock['quantity'] / $stock['optimal_level']) * 100);
+                            $percentage = ($stock['optimal_level'] > 0) ? min(100, ($stock['quantity'] / $stock['optimal_level']) * 100) : 0;
                         @endphp
+
                         <div class="progress-bar 
                             @if($stock['status'] === 'optimal') bg-success
                             @elseif($stock['status'] === 'low') bg-warning

@@ -116,14 +116,15 @@ Route::prefix('agent')->name('agent.')->middleware(['auth', 'role:agent'])->grou
     Route::get('/donations/create', [AgentController::class, 'createDonation'])->name('donations.create');
 
     //TRAITEMENT DU FORMULAIRE (IMPORTANT)
-     // Route::post('/donations', [AgentController::class, 'storeDonation'])->name('donations.store');
+     //Route::post('/donations', [AgentController::class, 'storeDonation'])->name('donations.store');
 
     //AUTRES FONCTIONNALITÉS (Depuis DonationController)
     Route::get('/donations', [DonationController::class, 'index'])->name('donations.index');
     Route::resource('donations', DonationController::class);
+    Route::put('donations/{donation}', [DonationController::class, 'update'])->name('donations.update');
     Route::get('donations/today', [DonationController::class, 'todayDonations'])->name('donations.today');
-    Route::get('donations/{donation}/receipt', [DonationController::class, 'receipt'])->name('donations.receipt');
-    Route::post('donations/{donation}/validate', [DonationController::class, 'validate'])->name('donations.validate');
+     //Route::get('donations/{donation}/receipt', [DonationController::class, 'receipt'])->name('donations.receipt');
+    Route::post('donations/{donation}/validateDonation', [DonationController::class, 'validateDonation'])->name('donations.validate');
 
      
 

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('quantity_units');
             $table->date('expiry_date');
             $table->enum('status', ['good', 'low', 'critical'])->default('good');
-            $table->string('location');
+           $table->string('location')->nullable();
             $table->decimal('temperature', 3, 1)->default(4.0);
             $table->date('collection_date');
             $table->text('notes')->nullable();

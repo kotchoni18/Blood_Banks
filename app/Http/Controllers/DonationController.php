@@ -76,12 +76,12 @@ class DonationController extends Controller
      */
     public function store(Request $request)
 {
-    //  Validation des champs
+    // 1. Validation
     $validated = $request->validate([
         'donor_id'         => 'required|exists:users,id',
         'donation_date'    => 'required|date|before_or_equal:today',
-        'donation_type'    => 'required|string',
-        'quantity_units'   => 'required|numeric|min:200|max:500',
+        'donation_type'    => 'required|in:whole_blood,plasma,platelets,double_red',
+        'quantity_ml'      => 'required|numeric|min:200|max:500',
         'bag_number'       => 'required|string|unique:donations,bag_number',
         'weight'           => 'required|numeric|min:50',
         'blood_pressure'   => 'required|string',
@@ -89,36 +89,35 @@ class DonationController extends Controller
         'medical_notes'    => 'nullable|string',
     ]);
 
-    //  Agent actuel
+    // 2. Agent connecté
     $validated['agent_id'] = auth()->id();
 
-    //  Groupe sanguin = celui du donneur
+    // 3. Groupe sanguin du donneur
     $donor = User::findOrFail($validated['donor_id']);
     $validated['blood_group'] = $donor->blood_group;
 
-    //  Statut par défaut
+    // 4. Champs par défaut
     $validated['status'] = 'pending';
     $validated['consent_given'] = true;
     $validated['medical_check_passed'] = true;
     $validated['eligibility_verified'] = true;
-    $validated['bag_number'] = $request->bag_number;
 
-    //  Enregistrement du don
+    // 5. Enregistrement
     $donation = donations::create($validated);
 
-    // Mise à jour du stock
+    // 6. Mise à jour du stock
     $stock = blood_stocks::firstOrCreate(
         ['blood_group' => $validated['blood_group']],
         [
             'quantity_units' => 0,
             'status' => 'ok',
             'expiry_date' => now()->addDays(42),
+            'collection_date' => now(),
         ]
     );
 
-    $stock->quantity_units += $validated['quantity_units'];
+    $stock->quantity_units += $validated['quantity_ml'];
 
-    // Mise à jour du statut du stock
     if ($stock->quantity_units <= 0) {
         $stock->status = 'empty';
     } elseif ($stock->quantity_units < 500) {
@@ -129,90 +128,181 @@ class DonationController extends Controller
 
     $stock->save();
 
-    // Redirection
     return redirect()->route('agent.donations.index')->with('success', 'Don enregistré avec succès');
 }
+
 
     /**
      * Générer un reçu PDF
      */
-    public function receipt($id)
-    {
-        $donation = donations::with(['donor', 'agent'])->findOrFail($id);
+    // public function receipt($id)
+    // {
+    //     $donation = donations::with(['donor', 'agent'])->findOrFail($id);
 
-        $pdf = Pdf::loadView('agent.donations.receipt-pdf', compact('donation'));
+    //     $pdf = Pdf::loadView('agent.donations.receipt-pdf', compact('donation'));
 
-        return $pdf->download('recu-don-' . $donation->bag_number . '.pdf');
-    }
+    //     return $pdf->download('recu-don-' . $donation->bag_number . '.pdf');
+    // }
 
     /**
      * Valider un don
      */
     public function validateDonation($id)
+{
+    $donation = donations::findOrFail($id);
+
+    if ($donation->status === 'validated') {
+        return redirect()->back()->with('error', 'Ce don est déjà validé');
+    }
+
+    // Transaction pour valider et ajouter au stock
+    DB::beginTransaction();
+    try {
+        $donation->update([
+            'status' => 'validated',
+            'validated_at' => now(),
+            'validated_by' => Auth::id(),
+        ]);
+
+        $expiryDate = Carbon::parse($donation->donation_date)->addDays(42);
+
+        blood_stocks::create([
+            'blood_group' => $donation->blood_group,
+            'quantity_units' => 1,
+            'bag_number' => $donation->bag_number,
+            'collection_date' => $donation->donation_date,
+            'expiry_date' => $expiryDate,
+            'location' => $donation->location ?? 'Default Location',
+            'status' => 'available',
+            'donor_id' => $donation->donor_id,
+        ]);
+
+        DB::commit();
+
+        return redirect()->route('agent.donations.show', $id)->with('success', 'Don validé et ajouté au stock avec succès');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Erreur lors de la validation : ' . $e->getMessage());
+    }
+}
+
+
+    public function storeDonation(Request $request)
+{
+    // Validation des champs
+    $validated = $request->validate([
+        'donor_id'           => 'required|exists:users,id',
+        'blood_group'        => 'required|string',
+        'donation_type'      => 'required|string',
+        'quantity_ml'        => 'required|numeric|min:1',
+        'hemoglobin_level'   => 'nullable|numeric',
+        'blood_pressure'     => 'nullable|string',
+        'weight'             => 'nullable|numeric',
+        'medical_notes'      => 'nullable|string',
+        'status'             => 'required|string',
+        'consent_given'      => 'nullable|boolean',
+        'medical_check_passed' => 'nullable|boolean',
+        'eligibility_verified' => 'nullable|boolean',
+    ]);
+
+    //  Ajout automatique de l'agent connecté
+    $validated['agent_id'] = auth()->id();
+
+    //  Booléens (checkbox)
+    $validated['consent_given']        = $request->has('consent_given');
+    $validated['medical_check_passed'] = $request->has('medical_check_passed');
+    $validated['eligibility_verified'] = $request->has('eligibility_verified');
+
+    //  Date du don
+    $validated['donation_date'] = now();
+
+    //  Enregistrement du don
+    $donation = donations::create($validated);
+
+    //  Mise à jour du stock
+    $stock = blood_stocks::firstOrCreate(
+        ['blood_group' => $validated['blood_group']],
+        [
+            'quantity_units' => 0,
+            'status'         => 'ok',
+            'expiry_date'    => now()->addDays(42), // exemple : 42 jours
+        ]
+    );
+
+    // Ajouter la quantité
+    $stock->quantity_units += $validated['quantity_ml'];
+
+    // Mettre à jour le statut si stock faible ou élevé (optionnel)
+    if ($stock->quantity_units <= 0) {
+        $stock->status = 'empty';
+    } elseif ($stock->quantity_units < 500) {
+        $stock->status = 'critical';
+    } else {
+        $stock->status = 'ok';
+    }
+
+    $stock->save();
+
+    // Redirection ou réponse JSON
+    if ($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Don enregistré avec succès',
+            'donation' => $donation
+        ]);
+    }
+
+    return redirect()->route('agent.dashboard')->with('success', 'Don enregistré avec succès');
+}
+
+
+    public function show($id)
+    {
+        $donation = \App\Models\Donations::findOrFail($id);
+        return view('agent.donations.show', compact('donation'));
+    }
+
+
+    public function edit($id)
     {
         $donation = donations::findOrFail($id);
-
-        if ($donation->status === 'validated') {
-            return redirect()->back()->with('error', 'Ce don est déjà validé');
-        }
-
-        DB::beginTransaction();
-        try {
-            $donation->update([
-                'status' => 'validated',
-                'validated_at' => now(),
-                'validated_by' => Auth::id(),
-            ]);
-
-            $expiryDate = Carbon::parse($donation->donation_date)->addDays(42);
-
-            blood_stocks::create([
-                'blood_group' => $donation->blood_group,
-                'quantity' => 1,
-                'bag_number' => $donation->bag_number,
-                'collection_date' => $donation->donation_date,
-                'expiry_date' => $expiryDate,
-                'location' => $donation->location,
-                'status' => 'available',
-                'donor_id' => $donation->donor_id,
-            ]);
-
-            DB::commit();
-
-            return redirect()->route('agent.donations.show', $id)
-                ->with('success', 'Don validé et ajouté au stock avec succès');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Erreur lors de la validation : ' . $e->getMessage());
-        }
+        return view('agent.donations.edit', compact('donation'));
     }
 
-    /**
-     * Vérifier l'éligibilité d'un donneur
-     */
-    private function checkEligibility($donor)
+    public function destroy($id)
     {
-        if ($donor->last_donation_date) {
-            $lastDonation = Carbon::parse($donor->last_donation_date);
-            $today = Carbon::today();
-            $daysSinceLastDonation = $lastDonation->diffInDays($today);
+        $donation = donations::findOrFail($id);
+        $donation->delete();
 
-            $requiredInterval = ($donor->gender === 'M') ? 60 : 90;
-
-            if ($daysSinceLastDonation < $requiredInterval) {
-                return false;
-            }
-        }
-
-        if ($donor->birth_date) {
-            $age = Carbon::parse($donor->birth_date)->age;
-            if ($age < 18 || $age > 65) {
-                return false;
-            }
-        }
-
-        return true;
+        return redirect()->route('agent.donations.index')->with('success', 'Don supprimé avec succès.');
     }
+
+    public function update(Request $request, $id)
+{
+    // Récupérer le don
+    $donation = donations::findOrFail($id);
+
+    // Validation des champs
+    $validated = $request->validate([
+        'quantity_ml' => 'required|integer|min:1',
+        'weight' => 'required|numeric|min:1',
+        'blood_pressure' => 'required|string|max:10',
+        'hemoglobin_level' => 'required|numeric|min:1',
+        'medical_notes' => 'nullable|string',
+    ]);
+
+    //  Mise à jour
+    try {
+        $donation->update($validated);
+
+        return redirect()->route('agent.donations.show', $donation->id)
+                         ->with('success', 'Don mis à jour avec succès.');
+    } catch (\Exception $e) {
+        return redirect()->back()
+                         ->with('error', 'Erreur lors de la mise à jour : ' . $e->getMessage())
+                         ->withInput();
+    }
+}
+
 }

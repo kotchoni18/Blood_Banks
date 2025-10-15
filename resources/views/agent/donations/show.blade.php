@@ -41,7 +41,7 @@
                     <button class="btn btn-success"><i class="bi bi-check-circle me-1"></i>Valider</button>
                 </form>
             @endif
-            <a href="{{ route('agent.donations.receipt', $donation->id) }}" class="btn btn-info"><i class="bi bi-file-earmark-pdf me-1"></i>Reçu PDF</a>
+            {{-- <a href="{{ route('agent.donations.receipt', $donation->id) }}" class="btn btn-info"><i class="bi bi-file-earmark-pdf me-1"></i>Reçu PDF</a> --}}
         </div>
     </div>
 </div>

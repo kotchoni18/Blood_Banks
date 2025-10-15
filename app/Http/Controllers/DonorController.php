@@ -223,7 +223,7 @@ class DonorController extends Controller
     public function donations()
     {
         // Récupérer les dons du donneur connecté
-        $donations = donations::where('donor_id', auth()->id())->latest()->get();
+        $donations = donations::where('donor_id', auth()->id())->latest()->paginate(10);
 
         // Retourner la vue
         return view('donor.donations.index', compact('donations'));

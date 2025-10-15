@@ -107,42 +107,62 @@
             </div>
         </div>
 
-        <!-- Filtres et recherche -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
-                <form method="GET" action="{{ route('admin.users.index') }}">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <input type="text" 
-                                   name="search" 
-                                   class="form-control" 
-                                   placeholder="Rechercher par nom, email..."
-                                   value="{{ request('search') }}">
-                        </div>
-                        <div class="col-md-3">
-                            <select name="role" class="form-select">
-                                <option value="">Tous les rôles</option>
-                                <option value="donor" {{ request('role') == 'donor' ? 'selected' : '' }}>Donneur</option>
-                                <option value="agent" {{ request('role') == 'agent' ? 'selected' : '' }}>Agent</option>
-                                <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <select name="status" class="form-select">
-                                <option value="">Tous les statuts</option>
-                                <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Actif</option>
-                                <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inactif</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-search me-1"></i> Filtrer
-                            </button>
-                        </div>
-                    </div>
-                </form>
+        <!-- Filtres et recherche --> 
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ route('admin.users.index') }}">
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <input type="text" 
+                           name="search" 
+                           class="form-control" 
+                           placeholder="Rechercher par nom, email..."
+                           value="{{ request('search') }}">
+                </div>
+
+                <div class="col-md-3">
+                    <select name="role" class="form-select">
+                        <option value="">Tous les rôles</option>
+                        <option value="donor" {{ request('role') == 'donor' ? 'selected' : '' }}>Donneur</option>
+                        <option value="agent" {{ request('role') == 'agent' ? 'selected' : '' }}>Agent</option>
+                        <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                    </select>
+                </div>
+
+                <!--Nouveau filtre : Groupe sanguin -->
+                <div class="col-md-3">
+                    <select name="blood_group" class="form-select">
+                        <option value="">Tous les groupes sanguins</option>
+                        <option value="A+" {{ request('blood_group') == 'A+' ? 'selected' : '' }}>A+</option>
+                        <option value="A-" {{ request('blood_group') == 'A-' ? 'selected' : '' }}>A-</option>
+                        <option value="B+" {{ request('blood_group') == 'B+' ? 'selected' : '' }}>B+</option>
+                        <option value="B-" {{ request('blood_group') == 'B-' ? 'selected' : '' }}>B-</option>
+                        <option value="AB+" {{ request('blood_group') == 'AB+' ? 'selected' : '' }}>AB+</option>
+                        <option value="AB-" {{ request('blood_group') == 'AB-' ? 'selected' : '' }}>AB-</option>
+                        <option value="O+" {{ request('blood_group') == 'O+' ? 'selected' : '' }}>O+</option>
+                        <option value="O-" {{ request('blood_group') == 'O-' ? 'selected' : '' }}>O-</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select name="status" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Actif</option>
+                        <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inactif</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-1"></i> Filtrer
+                    </button>
+                </div>
+
             </div>
-        </div>
+        </form>
+    </div>
+</div>
 
         <!-- Liste des utilisateurs -->
         <div class="card border-0 shadow-sm">

@@ -15,6 +15,7 @@ class donations extends Model
         'blood_group',
         'donation_type',
         'quantity_ml',
+        'bag_number',
         'hemoglobin_level',
         'blood_pressure',
         'weight',

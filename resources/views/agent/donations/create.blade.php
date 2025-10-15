@@ -11,7 +11,7 @@
 <div class="card shadow-sm">
     <div class="card-body">
         <form action="{{ route('agent.donations.store') }}" method="POST">
-    @csrf
+            @csrf
 
     <!-- Donneur et Date du don -->
     <div class="row mb-3">
@@ -34,9 +34,9 @@
         </div>
     </div>
 
-    <!-- Type de don, Quantité et Groupe sanguin -->
+    <!-- Type de don, Quantité, Groupe sanguin, Numéro de poche -->
     <div class="row mb-3">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="donation_type" class="form-label">Type de don</label>
             <select name="donation_type" id="donation_type" class="form-select @error('donation_type') is-invalid @enderror">
                 <option value="">-- Sélectionner --</option>
@@ -47,16 +47,23 @@
             @error('donation_type') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
-        <div class="col-md-4">
-            <label for="quantity_ml" class="form-label">Quantité (ml)</label>
-            <input type="number" name="quantity_ml" id="quantity_ml" class="form-control @error('quantity_ml') is-invalid @enderror" value="{{ old('quantity_ml') }}">
-            @error('quantity_ml') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div class="col-md-3">
+            <label for="quantity_units" class="form-label">Quantité (ml)</label>
+            <input type="number" name="quantity_units" id="quantity_units" class="form-control @error('quantity_units') is-invalid @enderror" value="{{ old('quantity_units') }}">
+            @error('quantity_units') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="blood_group" class="form-label">Groupe sanguin</label>
             <input type="text" name="blood_group" id="blood_group" class="form-control @error('blood_group') is-invalid @enderror" value="{{ old('blood_group') }}">
             @error('blood_group') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+
+        <!-- ✅ NOUVEAU CHAMP BAG_NUMBER -->
+        <div class="col-md-3">
+            <label for="bag_number" class="form-label">Numéro de poche</label>
+            <input type="text" name="bag_number" id="bag_number" class="form-control @error('bag_number') is-invalid @enderror" value="{{ old('bag_number') }}">
+            @error('bag_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>
 
@@ -104,6 +111,7 @@
     <button type="submit" class="btn btn-danger"><i class="bi bi-check2-circle me-1"></i>Enregistrer</button>
     <a href="{{ route('agent.donations.index') }}" class="btn btn-secondary ms-2">Annuler</a>
 </form>
+
 
     </div>
 </div>

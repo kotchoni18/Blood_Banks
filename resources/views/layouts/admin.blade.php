@@ -97,6 +97,12 @@
                     </li>
 
                     <li class="nav-item">
+                        <a href="{{ route('admin.notifications.criticalStocks') }}" 
+                            class="nav-link {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">
+                            <i class="bi bi-bell me-2"></i> Notifications
+                        </a>
+                    </li>
+    <li class="nav-item">
     <a href="{{ route('admin.reports.users') }}" 
        class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
         <i class="bi bi-bar-chart-line me-2"></i>
@@ -108,6 +114,7 @@
                class="nav-link {{ request()->routeIs('admin.reports.users') ? 'active' : '' }}">
                 Utilisateurs
             </a>
+            
         </li>
         <li class="nav-item">
             <a href="{{ route('admin.reports.stocks') }}" 
@@ -131,6 +138,8 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="header d-flex justify-content-between align-items-center">
+
+
                 <div>
                     <h2 class="mb-0">@yield('page-title', 'Tableau de Bord')</h2>
                     <small class="text-muted">@yield('page-subtitle', 'Vue d\'ensemble')</small>

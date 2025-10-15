@@ -10,6 +10,8 @@ use App\Http\Controllers\DonationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AdminNotificationController;
+use App\Http\Controllers\UserNotificationController;
 
 // Page d'accueil - Redirection vers login
 /* Route::get('/', function () {
@@ -86,6 +88,9 @@ Route::prefix('admin')->name('admin.')->middleware(['web', 'auth', 'role:admin']
      Route::get('reports/users', [AdminController::class, 'usersReport'])->name('reports.users');
      Route::get('reports/donations', [AdminController::class, 'donationsReport'])->name('reports.donations');
      Route::get('reports/stocks', [AdminController::class, 'stocksReport'])->name('reports.stocks');
+
+     Route::get('notifications/critical-stocks', [AdminNotificationController::class, 'criticalStocks'])->name('notifications.criticalStocks');
+    Route::post('notifications/notify-group', [AdminNotificationController::class, 'notifyGroup'])->name('notifications.notifyGroup');
 });
 
 
@@ -114,6 +119,7 @@ Route::prefix('agent')->name('agent.')->middleware(['auth', 'role:agent'])->grou
      // Route::post('/donations', [AgentController::class, 'storeDonation'])->name('donations.store');
 
     //AUTRES FONCTIONNALITÉS (Depuis DonationController)
+    Route::get('/donations', [DonationController::class, 'index'])->name('donations.index');
     Route::resource('donations', DonationController::class);
     Route::get('donations/today', [DonationController::class, 'todayDonations'])->name('donations.today');
     Route::get('donations/{donation}/receipt', [DonationController::class, 'receipt'])->name('donations.receipt');
@@ -167,7 +173,9 @@ Route::prefix('donor')->name('donor.')->group(function () {
      Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
     // Notifications et préférences
-    Route::get('/notifications', [DonorController::class, 'notifications'])->name('profile.notifications');
-    Route::post('/notifications/mark-read', [DonorController::class, 'markNotificationsRead'])
-         ->name('notifications.mark-read');
+    Route::get('/notifications', [UserNotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [UserNotificationController::class, 'markAsRead'])->name('notifications.read');
+     //Route::get('/notifications', [DonorController::class, 'notifications'])->name('profile.notifications');
+     //Route::post('/notifications/mark-read', [DonorController::class, 'markNotificationsRead'])
+     // ->name('notifications.mark-read');
 });

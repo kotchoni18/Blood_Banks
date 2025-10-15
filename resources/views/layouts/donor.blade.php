@@ -141,6 +141,17 @@
                             <i class="bi bi-megaphone me-1"></i>Campagnes
                         </a>
                     </li>
+                    <li class="nav-item">
+                    <!-- notifications -->
+                    @php $unread = auth()->check() ? auth()->user()->notificationsInApp()->where('is_read', false)->count() : 0; @endphp
+
+                    <a href="{{ route('donor.notifications.index') }}" class="text-white me-1 nav-link">
+                        <i class="bi bi-bell"></i>
+                        @if($unread > 0)
+                            <span class="badge bg-danger rounded-pill">{{ $unread }}</span>
+                        @endif
+                    </a>
+                    </li>
                 </ul>
                 
                 <ul class="navbar-nav">

@@ -39,6 +39,10 @@ public function index(Request $request)
         });
     }
 
+    if ($request->filled('blood_group')) {
+        $query->where('blood_group', $request->blood_group);
+    }
+
     //  Pagination des résultats filtrés
     $users = $query->paginate(15);
 

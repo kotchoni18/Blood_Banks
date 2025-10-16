@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AgentController;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +19,15 @@ use App\Http\Controllers\UserNotificationController;
 /* Route::get('/', function () {
     return redirect()->route('home');
 }); */
+
+// Mot de passe oublié
+
+Route::get('password/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+
 
 // Page d'accueil : Formulaire de connexion général
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
@@ -36,6 +47,7 @@ Route::post('/agent/login', [AgentController::class, 'login'])->name('agent.logi
 //Auth Doneur
 Route::get('/donor/login', [AuthController::class, 'donorLogin'])->name('getdonor.login');
 Route::post('/donor/login', [DonorController::class, 'login'])->name('donor.login');
+
 
 
 
